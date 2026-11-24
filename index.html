@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reserva de Salas</title>
+  <meta name="description" content="Reserva salas de reunión con tu cuenta de Google.">
+  <meta name="theme-color" content="#f8fafd" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#131314" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><rect width='48' height='48' rx='12' fill='%230b57d0'/><path d='M15 36V13h14l4 3v20' fill='none' stroke='white' stroke-width='3.5' stroke-linejoin='round'/><circle cx='26' cy='25' r='2.2' fill='white'/><path d='M11 36h26' stroke='white' stroke-width='3.5' stroke-linecap='round'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- La tipografía la carga js/fuentes.js según la elección de cada persona -->
+  <script src="js/config.js"></script>
+  <script src="js/fuentes.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&display=block">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/paneles.css">
+  <link rel="stylesheet" href="css/identidad.css">
+  <link rel="stylesheet" href="css/diseno.css">
+</head>
+<body>
+  <a class="saltar" href="#principal">Saltar al contenido</a>
+  <!-- ============ Pantalla de acceso ============ -->
+  <section id="pantalla-acceso" class="acceso" hidden>
+    <div class="escena-acceso" data-escena-epoca aria-hidden="true"></div>
+    <div class="acceso-tarjeta">
+      <div class="letrero">
+        <span class="franja-epoca" aria-hidden="true"></span>
+        <span class="letrero-estado">Salas libres ahora</span>
+        <h1 data-nombre-app>Reserva de Salas</h1>
+        <p class="acceso-org" data-org></p>
+      </div>
+      <div class="acceso-cuerpo">
+      <p class="acceso-texto">Entra con tu cuenta de Google para ver qué salas están libres y reservar en segundos.</p>
+      <div id="boton-google" class="boton-google"></div>
+      <div id="acceso-demo" hidden>
+        <button class="btn btn-relleno btn-grande" id="btn-entrar-demo"><span class="ms">play_arrow</span>Entrar en modo demostración</button>
+        <p class="acceso-nota">Modo demostración: los datos de ejemplo se guardan solo en este navegador.
+          Para conectar Google Sheets y el acceso con Google, sigue el README.</p>
+      </div>
+      <p class="acceso-error" id="acceso-error" role="alert" hidden></p>
+      </div>
+    </div>
+    <p class="acceso-pie">Tus reservas se sincronizan con Google Calendar.</p>
+  </section>
+
+  <!-- ============ Aplicación ============ -->
+  <div id="app" class="app pagina-calendario" hidden>
+    <header class="barra">
+      <span class="franja-epoca" aria-hidden="true"></span>
+      <button class="btn-icono" id="btn-menu" aria-label="Menú principal" title="Menú principal"><span class="ms">menu</span></button>
+      <a class="marca" href="#calendario" id="marca" aria-label="Inicio">
+        <span class="logo" aria-hidden="true"><span class="ms">meeting_room</span><span class="emoji-epoca" data-emoji-epoca></span></span>
+        <span class="marca-texto"><b data-nombre-app>Reserva de Salas</b><small data-org></small></span>
+      </a>
+      <span class="separador-marca" aria-hidden="true"></span>
+      <button class="btn btn-borde solo-calendario" id="btn-hoy" title="Ir a hoy (T)">Hoy</button>
+      <div class="navegacion solo-calendario">
+        <button class="btn-icono" id="btn-anterior" aria-label="Anterior" title="Anterior (P)"><span class="ms">chevron_left</span></button>
+        <button class="btn-icono" id="btn-siguiente" aria-label="Siguiente" title="Siguiente (N)"><span class="ms">chevron_right</span></button>
+      </div>
+      <h1 class="titulo-periodo" id="titulo-periodo"></h1>
+      <span class="espaciador"></span>
+      <span class="chip-demo" id="chip-demo" hidden data-tip="Los datos son de ejemplo y se guardan solo en este navegador">Demostración</span>
+      <button class="btn-icono" id="btn-buscar" aria-label="Buscar (Ctrl+K)" data-tip="Buscar reuniones, salas y acciones (Ctrl+K)"><span class="ms">search</span></button>
+      <button class="en-linea" id="btn-en-linea" data-solo-admin hidden aria-label="Usuarios conectados" data-tip="Usuarios conectados ahora">
+        <span class="pila-avatares" id="pila-avatares"></span><span class="txt" id="txt-en-linea"></span>
+      </button>
+      <div class="vistas solo-calendario" role="tablist" aria-label="Vista del calendario">
+        <button role="tab" data-vista="dia" title="Día (D)">Día</button>
+        <button role="tab" data-vista="semana" title="Semana (W)">Semana</button>
+        <button role="tab" data-vista="mes" title="Mes (M)">Mes</button>
+        <button role="tab" data-vista="agenda" title="Agenda (A)">Agenda</button>
+      </div>
+      <a class="btn btn-control" href="#control" id="btn-control" data-solo-admin hidden data-tip="Reportes, reservas, salas y usuarios">
+        <span class="ms">admin_panel_settings</span><span class="txt">Panel de control</span>
+      </a>
+      <button class="btn btn-asistente" id="btn-asistente" title="Asistente de reservas (/)">
+        <span class="ms ms-relleno">auto_awesome</span><span class="txt">Asistente</span>
+      </button>
+      <button class="btn-icono" id="btn-ayuda" aria-label="Ayuda y atajos (?)" data-tip="Ayuda y atajos de teclado (?)"><span class="ms">help</span></button>
+      <button class="avatar" id="btn-cuenta" aria-label="Cuenta" title="Cuenta"></button>
+    </header>
+
+    <div class="banner-red" id="banner-red" hidden role="alert">
+      <span class="ms">wifi_off</span>Sin conexión a internet. Podrás reservar cuando vuelva la conexión.
+    </div>
+
+    <div class="banner-pegar" id="banner-pegar" hidden role="status">
+      <span class="ms">content_paste</span>
+      <span id="banner-pegar-texto"></span>
+      <button class="btn btn-texto btn-pequeno" id="banner-pegar-salir">Cancelar (Esc)</button>
+    </div>
+
+    <div class="cuerpo">
+      <aside class="lateral" id="lateral">
+        <button class="btn-crear" id="btn-crear" title="Crear reserva (C)">
+          <span class="ms">add</span><span>Crear</span>
+        </button>
+
+        <nav class="nav-lateral" aria-label="Secciones">
+          <a href="#calendario" data-pagina="calendario"><span class="ms">calendar_month</span>Calendario</a>
+          <a href="#panel" data-pagina="panel"><span class="ms">space_dashboard</span>Mi panel</a>
+          <a href="#salas" data-pagina="salas"><span class="ms">meeting_room</span>Salas</a>
+          <a href="#control" data-pagina="control" data-solo-admin hidden><span class="ms">admin_panel_settings</span>Panel de control</a>
+        </nav>
+
+        <div class="solo-calendario">
+          <div class="mini-cal" id="mini-cal"></div>
+
+          <section class="seccion-lateral">
+            <h2>Ahora mismo</h2>
+            <ul class="estado-ahora" id="estado-ahora"></ul>
+          </section>
+
+          <section class="seccion-lateral">
+            <h2>Salas</h2>
+            <ul class="lista-salas" id="lista-salas"></ul>
+          </section>
+
+          <section class="seccion-lateral">
+            <label class="casilla">
+              <input type="checkbox" id="solo-mias">
+              <span class="casilla-caja"></span>
+              <span>Solo mis reservas</span>
+            </label>
+          </section>
+          <div class="consejos" id="consejos">
+            <button class="btn-icono consejos-cerrar" id="consejos-cerrar" aria-label="Ocultar consejos" data-tip="Ocultar consejos (puedes verlos con ?)"><span class="ms">close</span></button>
+            <b><span class="ms">lightbulb</span>Consejos</b>
+            <ul>
+              <li><b>Arrastra</b> en el calendario para crear una reserva.</li>
+              <li>Arrastra <b>tus</b> reuniones para moverlas o estira su borde inferior.</li>
+              <li><kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>Ctrl</kbd>+<kbd>V</kbd> para copiar y pegar una reunión.</li>
+              <li><kbd>Ctrl</kbd>+<kbd>K</kbd> busca reuniones, salas y acciones. <kbd>?</kbd> muestra todos los atajos.</li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+      <div class="velo" id="velo-lateral" hidden></div>
+
+      <main class="principal" id="principal" tabindex="-1"></main>
+
+      <!-- Asistente -->
+      <aside class="asistente" id="asistente" hidden aria-label="Asistente de reservas">
+        <header class="asistente-cabecera">
+          <span class="ms ms-relleno brillo">auto_awesome</span>
+          <div>
+            <h2>Asistente</h2>
+            <p id="asistente-modo">Siempre confirma antes de reservar</p>
+          </div>
+          <span class="espaciador"></span>
+          <button class="btn-icono" id="asistente-limpiar" title="Nueva conversación"><span class="ms">refresh</span></button>
+          <button class="btn-icono" id="asistente-cerrar" title="Cerrar"><span class="ms">close</span></button>
+        </header>
+        <div class="asistente-mensajes" id="asistente-mensajes" role="log" aria-live="polite" aria-relevant="additions"></div>
+        <form class="asistente-entrada" id="asistente-form" autocomplete="off">
+          <textarea id="asistente-texto" rows="1" placeholder="Escribe lo que necesitas…" aria-label="Mensaje para el asistente"></textarea>
+          <button class="btn-icono btn-voz" type="button" id="asistente-voz" aria-label="Dictar por voz" title="Dictar por voz" hidden><span class="ms">mic</span></button>
+          <button class="btn-icono btn-enviar" type="submit" aria-label="Enviar"><span class="ms ms-relleno">send</span></button>
+        </form>
+      </aside>
+    </div>
+  </div>
+
+  <!-- ============ Diálogo de reserva ============ -->
+  <dialog class="dialogo" id="dlg-reserva" aria-labelledby="dlg-titulo">
+    <form method="dialog" id="form-reserva" novalidate>
+      <header class="dialogo-cabecera">
+        <h2 id="dlg-titulo" class="dialogo-titulo">Nueva reserva</h2>
+        <span class="espaciador"></span>
+        <button type="button" class="btn-icono" data-cerrar aria-label="Cerrar"><span class="ms">close</span></button>
+      </header>
+      <div class="dialogo-cuerpo">
+        <div class="aviso-dlg" id="dlg-aviso" hidden></div>
+        <input class="campo-titulo" name="titulo" aria-label="Título de la reunión" placeholder="¿Para qué es la reunión?" maxlength="150" required autocomplete="off">
+        <div class="fila-campo">
+          <span class="ms">schedule</span>
+          <div>
+            <div class="grupo-hora">
+              <input type="date" name="fecha" required aria-label="Fecha">
+              <select name="horaInicio" aria-label="Hora de inicio"></select>
+              <span class="guion">–</span>
+              <select name="horaFin" aria-label="Hora de fin"></select>
+            </div>
+            <div class="chips-duracion" id="chips-duracion" aria-label="Duración rápida">
+              <button type="button" data-min="30">30 min</button>
+              <button type="button" data-min="60">1 hora</button>
+              <button type="button" data-min="90">1 h 30</button>
+              <button type="button" data-min="120">2 horas</button>
+            </div>
+          </div>
+        </div>
+        <div class="fila-campo" id="fila-repetir">
+          <span class="ms">repeat</span>
+          <div class="repetir">
+            <select name="repetir" id="sel-repetir" aria-label="Repetición"></select>
+            <div class="repetir-personalizado" id="repetir-personalizado" hidden>
+              <div class="repetir-linea">
+                <span>Cada</span>
+                <input type="number" name="intervalo" min="1" max="12" value="1" aria-label="Intervalo">
+                <select name="frecuencia" aria-label="Frecuencia">
+                  <option value="diaria">día(s)</option>
+                  <option value="semanal" selected>semana(s)</option>
+                  <option value="mensual">mes(es)</option>
+                </select>
+              </div>
+              <div class="dias-semana" id="dias-semana" aria-label="Días de la semana"></div>
+              <div class="repetir-linea">
+                <span>Termina</span>
+                <select name="termina" aria-label="Cuándo termina">
+                  <option value="veces">después de</option>
+                  <option value="fecha">el día</option>
+                </select>
+                <input type="number" name="veces" min="2" max="52" value="10" aria-label="Número de veces"><span id="txt-veces">veces</span>
+                <input type="date" name="hasta" aria-label="Fecha final" hidden>
+              </div>
+            </div>
+            <p class="repetir-resumen" id="repetir-resumen"></p>
+          </div>
+        </div>
+        <div class="fila-campo" id="fila-serie" hidden>
+          <span class="ms">event_repeat</span>
+          <span class="nota-serie" id="nota-serie"></span>
+        </div>
+        <div class="fila-campo">
+          <span class="ms">group</span>
+          <label class="campo-num">
+            <input type="number" name="asistentes" min="1" max="999" value="2" aria-label="Asistentes">
+            <span>personas</span>
+          </label>
+        </div>
+        <div class="fila-campo fila-salas">
+          <span class="ms">meeting_room</span>
+          <div class="selector-salas" id="selector-salas" role="radiogroup" aria-label="Sala"></div>
+        </div>
+        <div class="fila-campo">
+          <span class="ms">person_add</span>
+          <div class="invitados" id="invitados">
+            <input type="email" id="invitado-texto" placeholder="Agregar invitados (correo y Enter)" aria-label="Agregar invitados">
+          </div>
+        </div>
+        <div class="fila-campo">
+          <span class="ms">notes</span>
+          <textarea name="descripcion" rows="2" placeholder="Agrega una descripción o agenda" maxlength="2000"></textarea>
+        </div>
+        <div class="fila-campo fila-privada">
+          <span class="ms" id="icono-privada">lock_open</span>
+          <label class="interruptor">
+            <input type="checkbox" name="privada" role="switch" aria-describedby="ayuda-privada">
+            <span class="interruptor-pista" aria-hidden="true"></span>
+            <span class="interruptor-texto">
+              <b>Reunión privada</b>
+              <small id="ayuda-privada">Los demás solo verán «Reservada» en la sala y el horario. Tú, tus invitados y los administradores ven todo.</small>
+            </span>
+          </label>
+        </div>
+        <div class="fila-campo nota-calendar" id="nota-calendar">
+          <span class="ms">event_available</span>
+          <span>Se enviará una invitación de Google Calendar a ti y a los invitados.</span>
+        </div>
+        <div class="errores" id="dlg-errores" role="alert" hidden></div>
+      </div>
+      <footer class="dialogo-pie">
+        <button type="button" class="btn btn-texto peligro" id="dlg-eliminar" hidden><span class="ms">delete</span>Cancelar reserva</button>
+        <span class="espaciador"></span>
+        <button type="button" class="btn btn-texto" data-cerrar>Descartar</button>
+        <button type="submit" class="btn btn-relleno" id="dlg-guardar">Guardar</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- ============ Diálogo de confirmación ============ -->
+  <dialog class="dialogo dialogo-chico" id="dlg-confirmar" aria-labelledby="conf-titulo">
+    <form method="dialog" id="form-confirmar">
+      <div class="dialogo-cuerpo confirmar-cuerpo">
+        <span class="ms confirmar-icono" id="conf-icono">help</span>
+        <h2 id="conf-titulo"></h2>
+        <p id="conf-texto"></p>
+        <div class="conf-opciones" id="conf-opciones"></div>
+      </div>
+      <footer class="dialogo-pie" id="conf-botones"></footer>
+    </form>
+  </dialog>
+
+  <!-- ============ Diálogo de sala (administradores) ============ -->
+  <dialog class="dialogo" id="dlg-sala" aria-labelledby="sala-titulo">
+    <form method="dialog" id="form-sala" novalidate>
+      <header class="dialogo-cabecera">
+        <h2 id="sala-titulo" class="dialogo-titulo">Nueva sala</h2>
+        <span class="espaciador"></span>
+        <button type="button" class="btn-icono" data-cerrar aria-label="Cerrar"><span class="ms">close</span></button>
+      </header>
+      <div class="dialogo-cuerpo">
+        <div class="foto-zona" id="foto-zona" tabindex="0" role="button" aria-label="Elegir fotografía de la sala">
+          <img id="foto-vista" alt="">
+          <div class="foto-indicaciones">
+            <span class="ms">add_photo_alternate</span>
+            <b>Arrastra una foto aquí o haz clic para elegirla</b>
+            <small>JPG, PNG o WebP. Se reduce automáticamente.</small>
+          </div>
+          <div class="foto-carga" id="foto-carga" hidden><span class="giro"></span>Subiendo foto…</div>
+          <input type="file" id="foto-archivo" accept="image/jpeg,image/png,image/webp" hidden>
+        </div>
+        <div class="foto-acciones">
+          <input type="url" name="foto" placeholder="o pega el enlace de una imagen (https://…)" aria-label="Enlace de la foto">
+          <button type="button" class="btn btn-texto btn-pequeno" id="foto-quitar"><span class="ms">delete</span>Quitar foto</button>
+        </div>
+        <div class="form-rejilla">
+          <label class="campo campo-ancho">Nombre<input name="nombre" required maxlength="100" placeholder="Ej.: Sala Ejecutiva"></label>
+          <label class="campo campo-ancho">Ubicación<input name="ubicacion" maxlength="150" placeholder="Ej.: Edificio A · 3er piso"></label>
+          <label class="campo">Capacidad (personas)<input name="capacidad" type="number" min="1" max="2000" required></label>
+          <label class="campo">Abre<input name="apertura" type="time" step="900" required></label>
+          <label class="campo">Cierra<input name="cierre" type="time" step="900" required></label>
+          <label class="campo campo-ancho">Equipamiento<input name="equipamiento" maxlength="255" placeholder="Proyector, Pizarra, Videoconferencia"></label>
+          <label class="campo campo-ancho">Descripción<textarea name="descripcion" rows="2" maxlength="1000"></textarea></label>
+          <div class="campo campo-ancho">Color en el calendario<div class="colores" id="colores" role="radiogroup" aria-label="Color"></div></div>
+          <label class="interruptor campo-ancho"><input type="checkbox" name="activa" checked><span class="pista"></span>Disponible para reservas</label>
+        </div>
+        <div class="errores" id="sala-errores" role="alert" hidden></div>
+      </div>
+      <footer class="dialogo-pie">
+        <span class="espaciador"></span>
+        <button type="button" class="btn btn-texto" data-cerrar>Cancelar</button>
+        <button type="submit" class="btn btn-relleno" id="sala-guardar">Guardar sala</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Navegación inferior (celular) -->
+  <nav class="nav-inferior" id="nav-inferior" aria-label="Secciones" hidden>
+    <a href="#calendario" data-pagina="calendario"><span class="ms">calendar_month</span><span>Calendario</span></a>
+    <a href="#panel" data-pagina="panel"><span class="ms">space_dashboard</span><span>Mi panel</span></a>
+    <a href="#salas" data-pagina="salas"><span class="ms">meeting_room</span><span>Salas</span></a>
+    <a href="#control" data-pagina="control" data-solo-admin hidden><span class="ms">admin_panel_settings</span><span>Control</span></a>
+  </nav>
+
+  <!-- ============ Buscador (Ctrl+K) ============ -->
+  <dialog class="dialogo dialogo-buscar" id="dlg-buscar" aria-label="Buscar">
+    <div class="buscar-cab">
+      <span class="ms">search</span>
+      <input id="buscar-texto" placeholder="Busca una reunión, una sala o lo que quieras hacer…" autocomplete="off" aria-label="Buscar" aria-controls="buscar-resultados">
+      <kbd>Esc</kbd>
+    </div>
+    <ul class="buscar-resultados" id="buscar-resultados" role="listbox"></ul>
+    <div class="buscar-pie"><span><kbd>↑</kbd><kbd>↓</kbd> moverse</span><span><kbd>Enter</kbd> abrir</span><span><kbd>Esc</kbd> cerrar</span></div>
+  </dialog>
+
+  <!-- ============ Ayuda y atajos ============ -->
+  <dialog class="dialogo dialogo-ayuda" id="dlg-ayuda" aria-labelledby="ayuda-titulo">
+    <header class="dialogo-cabecera"><h2 id="ayuda-titulo" class="dialogo-titulo">Ayuda y atajos de teclado</h2><span class="espaciador"></span>
+      <button type="button" class="btn-icono" data-cerrar aria-label="Cerrar"><span class="ms">close</span></button></header>
+    <div class="dialogo-cuerpo" id="ayuda-cuerpo"></div>
+  </dialog>
+
+  <!-- ============ Bienvenida ============ -->
+  <dialog class="dialogo dialogo-bienvenida" id="dlg-bienvenida" aria-labelledby="bienvenida-titulo">
+    <div class="bienvenida-ilustracion" id="bienvenida-ilustracion" aria-hidden="true"></div>
+    <div class="dialogo-cuerpo">
+      <h2 id="bienvenida-titulo"></h2>
+      <p id="bienvenida-texto"></p>
+      <div class="puntos" id="bienvenida-puntos" aria-hidden="true"></div>
+    </div>
+    <footer class="dialogo-pie">
+      <button type="button" class="btn btn-texto" id="bienvenida-omitir">Omitir</button>
+      <span class="espaciador"></span>
+      <button type="button" class="btn btn-texto" id="bienvenida-atras">Atrás</button>
+      <button type="button" class="btn btn-relleno" id="bienvenida-siguiente">Siguiente</button>
+    </footer>
+  </dialog>
+
+  <!-- ============ Huevos de pascua ============ -->
+  <dialog class="dialogo dialogo-chico" id="dlg-huevos" aria-labelledby="huevos-titulo">
+    <header class="dialogo-cabecera"><h2 id="huevos-titulo" class="dialogo-titulo">Huevos de pascua</h2><span class="espaciador"></span>
+      <button type="button" class="btn-icono" data-cerrar aria-label="Cerrar"><span class="ms">close</span></button></header>
+    <div class="dialogo-cuerpo" id="huevos-cuerpo"></div>
+  </dialog>
+
+  <div class="popover" id="popover" role="dialog" hidden></div>
+  <div class="menu-flotante" id="menu-cuenta" hidden></div>
+  <div class="snackbar" id="snackbar" role="status" aria-live="polite" hidden></div>
+  <div class="tip" id="tip" role="tooltip" hidden></div>
+  <div class="carga" id="carga" hidden><div class="barra-carga"></div></div>
+
+  <script src="js/util.js"></script>
+  <script src="js/reglas.js"></script>
+  <script src="js/recurrencia.js"></script>
+  <script src="js/reportes.js"></script>
+  <script src="js/ilustraciones.js"></script>
+  <script src="js/interprete.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/calendario.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/paneles.js"></script>
+  <script src="js/huevos.js"></script>
+  <script src="js/escenas.js"></script>
+  <script src="js/epocas.js"></script>
+  <script src="js/ayuda.js"></script>
+  <script src="js/asistente.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,497 @@
+/* ==========================================================================
+   Diseño «Señalética de edificio»
+   La app se inspira en los rótulos y placas de puerta de un edificio:
+   letra hiperlegible para leer, letra de rótulo condensada para nombres y títulos,
+   verde de señal como marca y amarillo señal solo para marcar «hoy».
+
+   Tipos
+     Atkinson Hyperlegible Next — texto e interfaz (diseñada para máxima legibilidad)
+     Big Shoulders Display      — títulos, nombres de sala, fechas y cifras grandes
+   Escala (rem, base 16 px del navegador): 0.875 · 1 · 1.125 · 1.375 · 1.75 · 2.25 · 3
+   Ningún texto de lectura baja de 14 px. El tamaño completo se puede agrandar (data-letra).
+   ========================================================================== */
+
+:root {
+  --fuente-texto: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+  --fuente: var(--fuente-texto);
+  --fuente-display: 'Big Shoulders Display', 'Barlow Condensed', 'Arial Narrow', 'Roboto Condensed', sans-serif;
+  --tinta: #1d2b36;
+  --senal: #ffc533;
+  --sobre-senal: #1d2b36;
+  --texto: #1d2b36;
+  --texto-2: #3e4c57;
+  --texto-3: #56636d;
+  --linea: #d5dedb;
+  --linea-suave: #e7ecea;
+  --alto-hora: 56px;
+  --radio: 20px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]):not([data-theme="light"]) {
+    --texto: #e6ece9; --texto-2: #c3ccc8; --texto-3: #9aa6a1; --linea: #36413d; --linea-suave: #2a3330;
+    --senal: #ffd35c; --sobre-senal: #1d2b36;
+  }
+}
+:root[data-tema="oscuro"], :root[data-theme="dark"]:not([data-tema="claro"]) {
+  --texto: #e6ece9; --texto-2: #c3ccc8; --texto-3: #9aa6a1; --linea: #36413d; --linea-suave: #2a3330;
+  --senal: #ffd35c; --sobre-senal: #1d2b36;
+}
+
+/* Verde de señal (marca por defecto) */
+:root[data-marca="verde"] {
+  --primario: #0b6b57; --primario-hover: #08513f; --sobre-primario: #ffffff; --primario-cont: #cdeee2; --sobre-primario-cont: #002117;
+  --fondo: #eef3f1; --marca-1: #17907a; --marca-2: #0b6b57;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-marca="verde"]:not([data-tema="claro"]):not([data-theme="light"]) {
+    --primario: #7ed8bd; --primario-hover: #a6ecd6; --sobre-primario: #00382b; --primario-cont: #0f5243; --sobre-primario-cont: #b8f3df; --fondo: #111816;
+    --superficie: #19211f; --superficie-2: #212b28; --superficie-3: #2b3633;
+  }
+}
+:root[data-marca="verde"][data-tema="oscuro"], :root[data-marca="verde"][data-theme="dark"]:not([data-tema="claro"]) {
+  --primario: #7ed8bd; --primario-hover: #a6ecd6; --sobre-primario: #00382b; --primario-cont: #0f5243; --sobre-primario-cont: #b8f3df; --fondo: #111816;
+  --superficie: #19211f; --superficie-2: #212b28; --superficie-3: #2b3633;
+}
+
+/* Tamaño de letra elegido por la persona (respeta el tamaño base de su navegador) */
+html { font-size: 100%; }
+html[data-letra="grande"] { font-size: 112.5%; }
+html[data-letra="muy-grande"] { font-size: 125%; }
+html[data-letra="grande"] { --alto-hora: 62px; }
+html[data-letra="muy-grande"] { --alto-hora: 68px; }
+
+body { font: 400 1rem/1.5 var(--fuente-texto); color: var(--texto); }
+button, input, select, textarea { font-family: var(--fuente-texto); }
+input, select, textarea { font-size: 1rem; }
+:focus-visible { outline: 3px solid var(--primario); outline-offset: 2px; }
+
+/* ---------- Títulos con letra de rótulo ---------- */
+.marca-texto b { font: 700 1.5rem/1.1 var(--fuente-display); letter-spacing: .2px; }
+.marca-texto small { font-size: .875rem; }
+.titulo-periodo { font: 700 1.875rem/1.1 var(--fuente-display); letter-spacing: .2px; }
+.pagina-cab h1 { font: 800 3rem/1 var(--fuente-display); letter-spacing: .2px; }
+.pagina-cab p { font-size: 1.125rem; }
+.tarjeta-panel h2, .seccion-lateral h2 { font: 700 1.375rem/1.2 var(--fuente-display); letter-spacing: .2px; }
+.dialogo-titulo, .confirmar-cuerpo h2, .dialogo-bienvenida h2, .pop-titulo, .acceso h1 { font-family: var(--fuente-display); font-weight: 700; letter-spacing: .2px; }
+.dialogo-titulo { font-size: 1.5rem; color: var(--texto); }
+.pop-titulo { font-size: 1.75rem; line-height: 1.1; }
+.kpi b { font: 800 2.25rem/1.05 var(--fuente-display); }
+.kpi span:not(.ms) { font-size: 1rem; line-height: 1.35; color: var(--texto-2); }
+.kpi small { font-size: .875rem; line-height: 1.35; }
+.mini-cab > span { font: 700 1.25rem/1.2 var(--fuente-display); }
+.btn { font-weight: 700; font-size: 1rem; min-height: 44px; height: auto; }
+.btn-pequeno { min-height: 36px; font-size: .9375rem; }
+.vistas button, .segmentado button { font-weight: 700; font-size: .9375rem; }
+.nav-lateral a { font-weight: 700; font-size: 1rem; height: 48px; }
+.nota-pie { font-size: .875rem; margin-top: 12px; }
+
+/* ---------- Calendario ---------- */
+.dia-nombre { font: 700 .9375rem/1.2 var(--fuente-texto); }
+.dia-num { font: 800 1.875rem/46px var(--fuente-display); }
+.dia-cab.hoy .dia-nombre { color: var(--texto); }
+.dia-cab.hoy .dia-num, .mini-grid button.hoy, .agenda-dia.hoy .n, .mes-celda.hoy .num { background: var(--senal); color: var(--sobre-senal); }
+.mini-grid button { font-size: .875rem; width: 32px; height: 32px; line-height: 32px; }
+.mini-grid .dsem { font-size: .8125rem; font-weight: 700; }
+.columna.hoy-col { background-color: color-mix(in srgb, var(--senal) 7%, transparent); }
+.hora-etq span { font-size: .875rem; top: -11px; color: var(--texto-3); }
+.zona { font-size: .8125rem; }
+.evento { font-size: .875rem; line-height: 1.25; border-radius: 8px; padding: 4px 8px 3px 10px; }
+.evento .ev-titulo { font-weight: 700; }
+.evento.ajeno { border-left-width: 5px; }
+.linea-ahora { height: 3px; }
+.linea-ahora .hora-ahora {
+  position: absolute; left: 10px; top: -13px; background: var(--ahora); color: #fff; font: 700 .875rem/1 var(--fuente-texto);
+  padding: 5px 8px; border-radius: 999px; box-shadow: var(--sombra-1);
+}
+.columna ~ .columna .linea-ahora .hora-ahora { display: none; }
+.sala-cab b { font: 700 1.25rem/1.2 var(--fuente-display); }
+.sala-cab small { font-size: .875rem; }
+.chip-ev { font-size: .875rem; line-height: 1.5; }
+.mes-celda .num { font-size: .9375rem; width: 30px; height: 30px; line-height: 30px; font-weight: 700; }
+.agenda-fecha .n { font: 800 2rem/40px var(--fuente-display); }
+.agenda-fecha .d { font-size: .9375rem; }
+.agenda-ev { font-size: 1rem; }
+
+/* ---------- Placas de sala (el elemento característico) ---------- */
+.placa {
+  display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  background: var(--superficie); border-radius: 12px; padding: 10px 12px 10px 0; margin-bottom: 8px;
+  box-shadow: inset 0 0 0 1px var(--linea); position: relative;
+}
+.placa::before { content: ''; align-self: stretch; border-radius: 12px 0 0 12px; background: var(--c); }
+.placa-nombre { font: 700 1.25rem/1.1 var(--fuente-display); letter-spacing: .2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.placa-sub { display: block; font-size: .875rem; color: var(--texto-2); margin-top: 2px; }
+.estado-pill {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font: 700 .8125rem/1.2 var(--fuente-texto); white-space: nowrap;
+  background: #d9f2e4; color: #0d5a32;
+}
+.estado-pill::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.estado-pill.ocupada { background: #fde0dc; color: #9b1c12; }
+:root[data-tema="oscuro"] .estado-pill { background: #173d2a; color: #8fe0b0; }
+:root[data-tema="oscuro"] .estado-pill.ocupada { background: #4a1b17; color: #ffb4a9; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) .estado-pill { background: #173d2a; color: #8fe0b0; }
+  :root:not([data-tema="claro"]) .estado-pill.ocupada { background: #4a1b17; color: #ffb4a9; }
+}
+.estado-ahora { display: block; }
+.lista-salas .sala-info b { font: 700 1.125rem/1.2 var(--fuente-display); }
+.lista-salas .sala-info small { font-size: .875rem; }
+
+/* Galería: la placa con el nombre va sobre la foto */
+.ts-cuerpo h3 { font: 800 1.75rem/1.05 var(--fuente-display); letter-spacing: .2px; }
+.ts-datos, .ts-cuerpo .tenue, .ts-desc { font-size: .9375rem; }
+.chip { font-size: .875rem; padding: 3px 10px; }
+.ts-estado { font-size: .875rem; padding: 6px 12px; }
+.op-texto b { font: 700 1.125rem/1.15 var(--fuente-display); }
+.op-texto small { font-size: .875rem; }
+.op-sala .estado { font-size: .8125rem; }
+
+/* ---------- Mi panel: rótulo de la próxima reunión ---------- */
+.rotulo {
+  display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); border-radius: 24px; overflow: hidden; margin-bottom: 16px;
+  background: var(--primario); color: var(--sobre-primario); position: relative; min-height: 260px;
+}
+.rotulo-texto { padding: 28px 32px; display: flex; flex-direction: column; gap: 6px; position: relative; z-index: 1; }
+.rotulo-etiqueta { display: inline-flex; align-items: center; gap: 8px; font: 700 1rem/1.2 var(--fuente-texto); opacity: .92; }
+.rotulo-etiqueta .ms { font-size: 22px; }
+.rotulo-hora { font: 800 5rem/0.95 var(--fuente-display); letter-spacing: .5px; margin-top: 6px; }
+.rotulo-hora small { font-size: 1.75rem; font-weight: 700; margin-left: 6px; }
+.rotulo-titulo { font: 700 1.75rem/1.15 var(--fuente-display); letter-spacing: .2px; }
+.rotulo-detalle { font-size: 1.125rem; opacity: .92; }
+.rotulo-acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 14px; }
+.rotulo .btn-claro { background: var(--sobre-primario); color: var(--primario); }
+.rotulo .btn-borde-claro { border: 2px solid currentColor; color: var(--sobre-primario); background: transparent; }
+.rotulo-cuando { display: inline-block; align-self: flex-start; background: var(--senal); color: var(--sobre-senal); font: 700 1rem/1 var(--fuente-texto); padding: 8px 14px; border-radius: 999px; }
+.rotulo-foto { position: relative; min-height: 220px; }
+.rotulo-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.rotulo-foto .placa-puerta {
+  position: absolute; left: 24px; bottom: 24px; right: 24px; background: var(--superficie); color: var(--texto); border-radius: 14px; padding: 14px 18px 14px 26px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .25); border-left: 10px solid var(--c);
+}
+.placa-puerta b { display: block; font: 800 2rem/1 var(--fuente-display); letter-spacing: .3px; }
+.placa-puerta span { font-size: 1rem; color: var(--texto-2); }
+.placa-puerta::before, .placa-puerta::after { content: ''; position: absolute; top: 10px; width: 7px; height: 7px; border-radius: 50%; background: var(--linea); box-shadow: inset 0 1px 1px rgba(0, 0, 0, .25); }
+.placa-puerta::before { left: 8px; }
+.placa-puerta::after { right: 10px; }
+.rotulo.vacio-rotulo { grid-template-columns: 1fr; min-height: 0; }
+.saludo { font: 800 3rem/1 var(--fuente-display); margin: 0; }
+.grupo-dia { font: 700 1.125rem/1.2 var(--fuente-display); color: var(--texto); margin: 20px 0 8px; }
+.fr-texto b { font-size: 1.0625rem; }
+.fr-texto small { font-size: .9375rem; }
+.fila-reserva { grid-template-columns: 64px minmax(0, 1fr) auto; padding: 10px; }
+.fr-foto { width: 64px; height: 64px; }
+
+/* ---------- Pantalla de acceso: rótulo de puerta ---------- */
+.acceso-tarjeta { padding: 0; overflow: hidden; max-width: 480px; }
+.letrero {
+  background: var(--primario); color: var(--sobre-primario); padding: 36px 32px 30px; position: relative; text-align: left;
+}
+.letrero::before, .letrero::after { content: ''; position: absolute; top: 16px; width: 10px; height: 10px; border-radius: 50%; background: rgba(255, 255, 255, .35); box-shadow: inset 0 1px 2px rgba(0, 0, 0, .3); }
+.letrero::before { left: 16px; }
+.letrero::after { right: 16px; }
+.letrero h1 { font: 800 3.25rem/0.95 var(--fuente-display); margin: 10px 0 8px; color: inherit; }
+.letrero .acceso-org { color: inherit; opacity: .9; font-size: 1.125rem; margin: 0; }
+.letrero-estado { display: inline-flex; align-items: center; gap: 8px; background: var(--senal); color: var(--sobre-senal); font: 700 .9375rem/1 var(--fuente-texto); padding: 8px 14px; border-radius: 999px; }
+.letrero-estado::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: #1e8e3e; }
+.acceso-cuerpo { padding: 28px 32px 32px; text-align: left; display: flex; flex-direction: column; align-items: stretch; }
+.acceso-texto { font-size: 1.125rem; margin-bottom: 22px; }
+.acceso-nota { font-size: .9375rem; }
+.acceso-pie { font-size: 1rem; }
+.acceso .logo-grande { display: none; }
+
+/* ---------- Otros ajustes de legibilidad ---------- */
+.tabla { font-size: .9375rem; }
+.tabla th { font-size: .875rem; }
+.tabla small { font-size: .875rem; }
+.persona small, .presencia-item small, .buscar-item small, .sala-info small, .tenue { font-size: max(.875rem, 1em * .9); }
+.snackbar { font-size: 1rem; }
+.tip { font-size: .875rem; line-height: 1.35; max-width: 320px; }
+.etiqueta { font-size: .875rem; }
+.consejos { font-size: .9375rem; line-height: 1.45; }
+.pop-sub, .pop-desc { font-size: 1rem; }
+.pop-permiso { font-size: .9375rem; }
+.msg-usuario, .msg-bot .contenido { font-size: 1rem; line-height: 1.5; }
+.sugerencia { font-size: .9375rem; padding: 8px 14px; }
+.campo { font-size: .9375rem; }
+.campo-titulo { font: 700 1.75rem/1.2 var(--fuente-display); }
+.repetir-resumen, .nota-serie, .nota-calendar, .aviso-dlg, .errores { font-size: .9375rem; }
+.chips-duracion button { font-size: .9375rem; min-height: 36px; }
+.nav-inferior a { font-size: .8125rem; }
+.bv-valor, .bv-etq, .bh-etq, .bh-valor { font-size: .875rem; }
+.calor-h, .calor-d { font-size: .8125rem; }
+.calor-leyenda { font-size: .875rem; }
+kbd { font-size: .8125rem; }
+
+/* Selector de tamaño de letra (menú de la cuenta y ayuda) */
+.tam-letra { display: flex; gap: 8px; padding: 4px 16px 12px 50px; }
+.tam-letra button {
+  min-width: 48px; height: 40px; border-radius: 12px; border: 1px solid var(--linea); background: var(--superficie); color: var(--texto);
+  font-family: var(--fuente-texto); font-weight: 700; padding: 0 10px;
+}
+.tam-letra button[aria-pressed="true"] { background: var(--primario-cont); border-color: transparent; color: var(--sobre-primario-cont); }
+.tam-letra button:nth-child(1) { font-size: 15px; }
+.tam-letra button:nth-child(2) { font-size: 18px; }
+.tam-letra button:nth-child(3) { font-size: 21px; }
+.ayuda-acciones .tam-letra { padding: 0; }
+
+@media (max-width: 900px) {
+  .rotulo { grid-template-columns: minmax(0, 1fr); }
+  .rotulo-foto { min-height: 200px; order: -1; }
+}
+@media (max-width: 640px) {
+  .pagina-cab h1, .saludo { font-size: 2.25rem; }
+  .titulo-periodo { font-size: 1.5rem; }
+  .rotulo-texto { padding: 22px; }
+  .rotulo-hora { font-size: 3.75rem; }
+  .dia-num { font-size: 1.5rem; line-height: 36px; }
+  .letrero h1 { font-size: 2.75rem; }
+  .fila-reserva { grid-template-columns: 52px minmax(0, 1fr); }
+  .fr-foto { width: 52px; height: 52px; }
+}
+
+.estado-ahora li.placa { display: grid; padding: 10px 12px 10px 0; font-size: inherit; gap: 12px; }
+.ayuda-sub { font: 700 1.25rem/1.2 var(--fuente-display); margin: 20px 0 8px; }
+
+/* ---------- Ajustes de la revisión v2.3 ---------- */
+.acceso-tarjeta { align-items: stretch; }
+.letrero { width: 100%; box-sizing: border-box; }
+.placa-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.estado-ahora li.placa { column-gap: 10px; }
+.estado-ahora li.placa > span:first-child { min-width: 0; }
+.estado-pill { white-space: nowrap; }
+.rotulo-acciones { align-items: center; }
+.rotulo-acciones .btn { min-height: 44px; box-sizing: border-box; border: 2px solid transparent; margin: 0; }
+.rotulo-acciones .btn-borde-claro { border-color: currentColor; }
+/* El título del periodo se adapta antes de cortarse */
+.titulo-periodo { font-size: clamp(1.375rem, 1.6vw + .5rem, 1.875rem); }
+/* El editor crece con el tamaño de letra para no apretar las tarjetas de sala */
+#dlg-reserva { width: min(640px, calc(100vw - 24px)); }
+html[data-letra="grande"] #dlg-reserva { width: min(720px, calc(100vw - 24px)); }
+html[data-letra="muy-grande"] #dlg-reserva { width: min(800px, calc(100vw - 24px)); }
+/* KPIs del panel de control: 3 + 3 en vez de 5 + 1 */
+.kpis.seis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (min-width: 1700px) { .kpis.seis { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .kpis.seis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.rotulo .rotulo-acciones.fila-reserva { display: flex; margin-top: auto; padding: 14px 0 0; }
+.selector-salas { grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); }
+@media (max-width: 760px) {
+  .cab-acciones { flex-direction: row !important; flex-wrap: wrap; }
+  .cab-acciones .btn { flex: 1 1 auto; justify-content: center; }
+}
+.placa-sub { white-space: normal; overflow: visible; }
+@media (max-width: 1520px) {
+  .pagina-calendario .chip-demo { display: none; }
+  .pagina-calendario .titulo-periodo { min-width: 0; flex: 1 1 auto; }
+}
+/* Placas de "Ahora mismo": nombre y estado arriba, detalle a todo el ancho */
+.estado-ahora li.placa { grid-template-columns: 8px minmax(0, 1fr) auto; grid-template-areas: "barra nombre pill" "barra sub sub"; align-items: center; row-gap: 2px; }
+.estado-ahora li.placa::before { grid-area: barra; }
+.estado-ahora li.placa > span:first-child { display: contents; }
+.estado-ahora li.placa .placa-nombre { grid-area: nombre; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.estado-ahora li.placa .placa-sub { grid-area: sub; }
+.estado-ahora li.placa .estado-pill { grid-area: pill; }
+@media (max-width: 600px) { .pagina-calendario #btn-en-linea { display: none !important; } }
+
+/* ---------- Tipo de letra elegible (js/fuentes.js) ----------
+   Los tamaños de arriba están pensados para la letra condensada «Letrero».
+   Con las letras de ancho normal se ajustan para que nada se corte. */
+html:not([data-fuente="letrero"]) .marca-texto b { font-size: 1.1875rem; font-weight: 700; letter-spacing: -.2px; }
+html:not([data-fuente="letrero"]) .titulo-periodo { font-size: clamp(1.25rem, 1.1vw + .55rem, 1.625rem); font-weight: 700; letter-spacing: -.3px; }
+html:not([data-fuente="letrero"]) .pagina-cab h1,
+html:not([data-fuente="letrero"]) .saludo { font-size: 2.5rem; letter-spacing: -.8px; }
+html:not([data-fuente="letrero"]) .kpi b { font-size: 1.875rem; letter-spacing: -.5px; }
+html:not([data-fuente="letrero"]) .dia-num { font-size: 1.5rem; letter-spacing: -.5px; }
+html:not([data-fuente="letrero"]) .placa-nombre { font-size: 1.0625rem; letter-spacing: -.1px; }
+html:not([data-fuente="letrero"]) .rotulo-hora { font-size: 4.25rem; letter-spacing: -2px; }
+html:not([data-fuente="letrero"]) .rotulo-titulo { font-size: 1.5rem; letter-spacing: -.3px; }
+html:not([data-fuente="letrero"]) .placa-puerta b { font-size: 1.5rem; letter-spacing: -.4px; }
+html:not([data-fuente="letrero"]) .letrero h1 { font-size: 2.5rem; letter-spacing: -.8px; line-height: 1.05; }
+html:not([data-fuente="letrero"]) .dialogo-titulo,
+html:not([data-fuente="letrero"]) .tarjeta h2,
+html:not([data-fuente="letrero"]) .estado-ahora h2 { letter-spacing: -.3px; }
+@media (max-width: 760px) {
+  html:not([data-fuente="letrero"]) .pagina-cab h1, html:not([data-fuente="letrero"]) .saludo { font-size: 1.875rem; }
+  html:not([data-fuente="letrero"]) .rotulo-hora { font-size: 3.25rem; }
+}
+
+.elegir-fuente { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 4px 16px 12px 50px; }
+.elegir-fuente button {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; min-height: 64px;
+  border-radius: 12px; border: 1px solid var(--linea); background: var(--superficie); color: var(--texto); cursor: pointer;
+}
+.elegir-fuente button:hover { background: var(--superficie-2); }
+.elegir-fuente button[aria-checked="true"] { background: var(--primario-cont); border-color: var(--primario); color: var(--sobre-primario-cont); box-shadow: inset 0 0 0 1px var(--primario); }
+.elegir-fuente .muestra { font-size: 1.5rem; font-weight: 700; line-height: 1.1; }
+.elegir-fuente .nombre { font: 500 .875rem/1.2 var(--fuente-texto); text-align: center; }
+#dlg-ayuda .elegir-fuente, .ayuda-cuerpo .elegir-fuente { padding: 0; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+@media (max-width: 640px) { #dlg-ayuda .elegir-fuente { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+html:not([data-fuente="letrero"]) .mini-cab > span { font-size: 1.0625rem; white-space: nowrap; }
+html:not([data-fuente="letrero"]) .estado-ahora li.placa .placa-nombre { white-space: normal; overflow: visible; line-height: 1.2; }
+#ayuda-cuerpo .tam-letra { padding: 0; }
+
+/* ---------- Reuniones privadas ---------- */
+/* Lo que ven los demás: un bloque rayado y neutro, como una puerta cerrada */
+.evento.oculta {
+  background:
+    repeating-linear-gradient(135deg, transparent 0 7px, color-mix(in srgb, var(--c) 22%, transparent) 7px 9px),
+    color-mix(in srgb, var(--c) 8%, var(--superficie));
+  color: var(--texto-2); border-left: 5px solid color-mix(in srgb, var(--c) 55%, var(--texto-3));
+}
+.evento.oculta .ev-titulo { font-style: normal; font-weight: 700; color: var(--texto-2); }
+.evento.oculta .ev-hora, .evento.oculta .ev-sala { color: var(--texto-3); }
+.chip-ev.oculta .t { color: var(--texto-3); }
+.ev-icono { font-size: 1em; vertical-align: -2px; margin-right: 2px; }
+.etiqueta.privada { background: var(--senal); color: var(--sobre-senal); }
+
+/* Interruptor «Reunión privada» del formulario */
+.interruptor { display: flex; align-items: flex-start; gap: 14px; cursor: pointer; padding: 6px 0; }
+.interruptor input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.interruptor-pista {
+  flex: none; width: 48px; height: 28px; border-radius: 999px; background: var(--superficie-3); border: 2px solid var(--texto-3);
+  position: relative; transition: background .15s, border-color .15s; margin-top: 2px; box-sizing: border-box;
+}
+.interruptor-pista::after {
+  content: ''; position: absolute; top: 4px; left: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--texto-3);
+  transition: transform .15s, width .15s, height .15s, top .15s, background .15s;
+}
+.interruptor input:checked + .interruptor-pista { background: var(--primario); border-color: var(--primario); }
+.interruptor input:checked + .interruptor-pista::after { transform: translateX(20px); top: 2px; width: 20px; height: 20px; background: var(--sobre-primario); }
+.interruptor input:focus-visible + .interruptor-pista { outline: 3px solid var(--primario); outline-offset: 2px; }
+.interruptor-texto { display: flex; flex-direction: column; gap: 2px; }
+.interruptor-texto b { font-weight: 700; }
+.interruptor-texto small { font-size: .875rem; color: var(--texto-2); line-height: 1.35; }
+.fila-privada.activa > .ms { color: var(--primario); }
+@media (prefers-reduced-motion: reduce) { .interruptor-pista, .interruptor-pista::after { transition: none; } }
+
+/* ---------- Decoración por época (js/epocas.js) ---------- */
+.franja-epoca { display: none; }
+[data-epoca] .franja-epoca {
+  display: block; position: absolute; left: 0; right: 0; height: var(--franja-alto, 15px); pointer-events: none;
+  background-image: var(--franja-epoca); background-repeat: repeat-x; background-position: 0 0;
+}
+[data-epoca] .barra { position: relative; }
+[data-epoca] .barra .franja-epoca { bottom: calc(-1 * var(--franja-alto, 15px) + 2px); z-index: 4; opacity: .95; }
+[data-epoca] .letrero .franja-epoca { top: 0; z-index: 0; }
+[data-epoca] .letrero { padding-top: 46px; }
+.logo { position: relative; }
+.emoji-epoca { display: none; }
+[data-epoca] .emoji-epoca {
+  display: grid; place-items: center; position: absolute; right: -9px; bottom: -7px; width: 22px; height: 22px; font-size: 14px; line-height: 1;
+  background: var(--superficie); border-radius: 50%; box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+}
+.particula-epoca {
+  position: fixed; top: -14px; z-index: 15; pointer-events: none; opacity: .55; animation: caer linear infinite;
+  text-shadow: 0 0 2px rgba(255, 255, 255, .6);
+}
+@media (prefers-reduced-motion: reduce) { .particula-epoca { display: none; } }
+
+.saludo-epoca {
+  display: flex; align-items: center; gap: 14px; margin: 0 0 16px; padding: 22px 12px 12px 18px; border-radius: 16px; position: relative; overflow: hidden;
+  background: color-mix(in srgb, var(--senal) 22%, var(--superficie)); color: var(--texto);
+}
+.saludo-epoca::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; height: var(--franja-alto, 15px);
+  background-image: var(--franja-epoca); background-repeat: repeat-x;
+}
+.saludo-epoca .emoji { font-size: 2rem; line-height: 1; }
+.saludo-epoca > span:nth-child(2) { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.saludo-epoca b { font: 700 1.125rem/1.2 var(--fuente-display); }
+.saludo-epoca > span:nth-child(2) > span { color: var(--texto-2); }
+
+.selector-epoca { display: block; padding: 4px 16px 12px 50px; }
+.selector-epoca select {
+  width: 100%; min-height: 44px; border-radius: 12px; border: 1px solid var(--linea); background: var(--superficie); color: var(--texto);
+  font: 500 1rem var(--fuente-texto); padding: 0 12px;
+}
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* La guirnalda cuelga bajo la barra: se deja un poco de aire para que no tape botones */
+[data-epoca] .cuerpo { padding-top: 10px; }
+[data-epoca] .barra .franja-epoca { bottom: calc(-1 * var(--franja-alto, 15px) + 4px); }
+[data-epoca] .letrero::before, [data-epoca] .letrero::after { top: 26px; }
+
+/* ---------- Asistente (v2.6) ---------- */
+.lista-mini.numerada .item-mini { grid-template-columns: 4px 28px minmax(0, 1fr) auto; }
+.item-mini .num {
+  display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--superficie); color: var(--texto-2);
+  font: 700 .875rem/1 var(--fuente-texto); box-shadow: inset 0 0 0 1px var(--linea);
+}
+.item-mini b, .item-mini small { overflow-wrap: anywhere; }
+.tachado { text-decoration: line-through; color: var(--texto-3); }
+.btn-voz.escuchando { background: var(--peligro-cont, #fde7e7); color: var(--peligro, #b3261e); animation: latir 1.2s ease-in-out infinite; }
+@keyframes latir { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--peligro, #b3261e) 18%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .btn-voz.escuchando { animation: none; } }
+.msg-bot .tenue { color: var(--texto-3); }
+
+/* ---------- Decoración por época, versión ilustrada (v2.7) ---------- */
+[data-epoca] .franja-epoca { overflow: hidden; background: none; }
+.franja-epoca .guirnalda { display: block; }
+[data-epoca] .cuerpo { padding-top: 16px; }
+.foco { animation: titilar 2.4s ease-in-out infinite; }
+.foco ellipse:first-of-type { filter: drop-shadow(0 0 3px currentColor); }
+@keyframes titilar { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+.banderin, .bandera-mini { transform-box: fill-box; transform-origin: 50% 0; animation: ondear 3.2s ease-in-out infinite alternate; }
+@keyframes ondear { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
+
+/* Fondo con un patrón tenue de la temporada */
+[data-epoca] body { background-image: var(--patron-epoca); background-repeat: repeat; }
+
+/* Adorno sobre el número de hoy */
+[data-epoca] .dia-cab.hoy .dia-num, [data-epoca] .mini-grid button.hoy { position: relative; overflow: visible; }
+[data-epoca] .dia-cab.hoy .dia-num::after {
+  content: var(--emoji-epoca); position: absolute; top: -10px; right: -16px; font-size: 20px; line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .25)); animation: saltito 4s ease-in-out infinite;
+}
+@keyframes saltito { 0%, 80%, 100% { transform: translateY(0) rotate(0); } 88% { transform: translateY(-4px) rotate(-8deg); } 94% { transform: translateY(0) rotate(6deg); } }
+
+/* La pantalla de acceso también lleva el patrón */
+[data-epoca] .acceso { background-image: var(--patron-epoca), radial-gradient(900px 500px at 15% 0%, color-mix(in srgb, var(--epoca-1) 14%, transparent), transparent 70%), radial-gradient(700px 500px at 100% 100%, color-mix(in srgb, var(--epoca-2) 16%, transparent), transparent 70%); }
+
+/* Pantalla de acceso: la ilustración se asoma sobre el letrero */
+.escena-acceso { display: none; }
+[data-epoca] .escena-acceso { display: block; width: 260px; max-width: 70vw; margin: 0 auto -34px; position: relative; z-index: 2; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .12)); }
+[data-epoca] .escena-acceso svg { display: block; width: 100%; height: auto; }
+[data-epoca] .letrero .franja-epoca { top: 0; }
+[data-epoca] .letrero { padding-top: 52px; }
+
+/* Saludo de temporada en «Mi panel»: tarjeta ilustrada */
+.saludo-epoca {
+  display: grid; grid-template-columns: minmax(0, 1fr) 260px; align-items: center; gap: 12px; margin: 0 0 16px; min-height: 168px;
+  padding: 34px 20px 12px 28px; border-radius: 24px; position: relative; overflow: hidden; color: var(--texto);
+  background:
+    var(--patron-epoca),
+    linear-gradient(120deg, color-mix(in srgb, var(--epoca-1) 16%, var(--superficie)) 0%, color-mix(in srgb, var(--epoca-2) 22%, var(--superficie)) 100%);
+}
+.saludo-epoca::before { content: none; }
+.saludo-epoca .franja-epoca { display: block; position: absolute; left: 0; right: 0; top: 0; height: var(--franja-alto, 26px); overflow: hidden; }
+.saludo-epoca .saludo-nombre { display: block; font: 800 1.75rem/1.1 var(--fuente-display); letter-spacing: -.3px; }
+html[data-fuente="letrero"] .saludo-epoca .saludo-nombre { font-size: 2.25rem; letter-spacing: .3px; }
+.saludo-epoca p { margin: 8px 0 0; font-size: 1.0625rem; color: var(--texto-2); max-width: 52ch; }
+.saludo-escena svg { display: block; width: 100%; height: auto; max-height: 150px; }
+.saludo-epoca > .btn-icono { position: absolute; top: 30px; right: 10px; background: color-mix(in srgb, var(--superficie) 70%, transparent); }
+@media (max-width: 760px) {
+  .saludo-epoca { grid-template-columns: 1fr; padding-right: 48px; }
+  .saludo-escena { max-width: 220px; justify-self: center; }
+}
+
+/* Partículas con vaivén */
+.particula-epoca { opacity: .6; }
+.particula-epoca > span { display: inline-block; animation: vaiven ease-in-out infinite alternate; }
+@keyframes vaiven { from { transform: translateX(-10px) rotate(-15deg); } to { transform: translateX(10px) rotate(15deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .foco, .banderin, .bandera-mini, [data-epoca] .dia-cab.hoy .dia-num::after { animation: none; }
+}
+
+/* El menú de la cuenta nunca se sale de la pantalla: si no cabe, se desplaza */
+#menu-cuenta { max-height: calc(100vh - 88px); overflow-y: auto; overscroll-behavior: contain; }
+.sello-ia { display: inline-flex; align-items: center; gap: 3px; margin-top: 6px; font: 600 .875rem/1 var(--fuente-texto); color: var(--texto-3); }
+.sello-ia .ms { font-size: 14px; color: #8a63f0; }
+.recomendaciones .item-mini small { white-space: normal; }
+
+/* La ilustración del acceso se ve completa: ya no se esconde detrás del letrero ni se sale por arriba */
+[data-epoca] .escena-acceso { margin: 0 auto -10px; z-index: 0; filter: none; }
+.acceso { justify-content: safe center; }
+@media (max-width: 600px), (max-height: 760px) { [data-epoca] .escena-acceso { width: 210px; } }
+/* La ilustración del saludo nunca se recorta */
+.saludo-escena { align-self: end; overflow: visible; }
+.saludo-escena svg { overflow: visible; }
