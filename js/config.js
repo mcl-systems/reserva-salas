@@ -49,5 +49,5 @@ window.APP_CONFIG = {
   ZONA_HORARIA: 'America/El_Salvador',
 
   // true → 14:00   ·   false → 2:00 p. m.
-  FORMATO_24H: false,
+  FORMATO_24H: false,+
 };
