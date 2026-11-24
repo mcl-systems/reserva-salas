@@ -35,7 +35,7 @@ window.APP_CONFIG = {
   // URL de la aplicación web de Apps Script (termina en /exec).
   // Si se deja vacío, el sitio funciona en MODO DEMOSTRACIÓN con datos de ejemplo
   // guardados solo en tu navegador.
-  API_URL: 'https://script.google.com/a/macros/mclogistica.com/s/AKfycbzK8UVVIgUiMSCoPWti7CeLrjM1oFdF8umTsxbaCQySKxGTmbVsSvhqE1pL3dD6SNVcmg/exec',  // ← PASO 5: pega aquí la URL que termina en /exec
+  API_URL: 'https://script.google.com/macros/s/AKfycbzK8UVVIgUiMSCoPWti7CeLrjM1oFdF8umTsxbaCQySKxGTmbVsSvhqE1pL3dD6SNVcmg/exec',  // ← PASO 5: pega aquí la URL que termina en /exec
 
   // ID de cliente OAuth de Google Cloud (tipo "Aplicación web").
   // Termina en .apps.googleusercontent.com
