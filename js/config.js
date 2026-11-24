@@ -35,11 +35,11 @@ window.APP_CONFIG = {
   // URL de la aplicación web de Apps Script (termina en /exec).
   // Si se deja vacío, el sitio funciona en MODO DEMOSTRACIÓN con datos de ejemplo
   // guardados solo en tu navegador.
-  API_URL: 'https://script.google.com/macros/s/AKfycbzK8UVVIgUiMSCoPWti7CeLrjM1oFdF8umTsxbaCQySKxGTmbVsSvhqE1pL3dD6SNVcmg/exec',  // ← PASO 5: pega aquí la URL que termina en /exec
+  API_URL: 'https://script.google.com/macros/s/AKfycbzK8UVVIgUiMSCoPWti7CeLrjM1oFdF8umTsxbaCQySKxGTmbVsSvhqE1pL3dD6SNVcmg/exec',
 
   // ID de cliente OAuth de Google Cloud (tipo "Aplicación web").
   // Termina en .apps.googleusercontent.com
-  GOOGLE_CLIENT_ID: '52195696185-bq4ci488g42pjpv1eaos4qu1qgba7gpd.apps.googleusercontent.com',  // ← PASO 5: pega aquí el ID que termina en .apps.googleusercontent.com
+  GOOGLE_CLIENT_ID: '52195696185-bq4ci488g42pjpv1eaos4qu1qgba7gpd.apps.googleusercontent.com',
 
   // Opcional: muestra solo cuentas de este dominio en el selector de Google (ej. 'miempresa.com').
   // La restricción real se configura en la hoja Config (DOMINIO_PERMITIDO).

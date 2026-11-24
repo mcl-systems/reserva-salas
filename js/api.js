@@ -33,7 +33,9 @@ var Api = (function () {
         if (!r.ok) throw ErrorApi('El servidor respondió ' + r.status + '. Revisa la URL de la API.', 'red');
         return r.json();
       }, function () {
-        throw ErrorApi('No hay conexión con el servidor. Revisa tu internet.', 'red');
+        throw ErrorApi(navigator.onLine === false
+          ? 'No hay conexión a internet.'
+          : 'No se pudo conectar con el servidor de Apps Script. Revisa que la implementación tenga acceso «Cualquier usuario» y que API_URL en config.js termine en /exec.', 'red');
       })
       .then(function (j) {
         if (!j.ok) {
@@ -56,12 +58,13 @@ var Api = (function () {
   ApiGoogle.prototype.foto = function (id) { return this.llamar('foto', { id: id }); };
   ApiGoogle.prototype.listarUsuarios = function () { return this.llamar('listarUsuarios'); };
   ApiGoogle.prototype.guardarUsuario = function (d) { return this.llamar('guardarUsuario', d); };
+  ApiGoogle.prototype.directorio = function () { return this.llamar('directorio'); };
   ApiGoogle.prototype.guardarEpoca = function (epoca) { return this.llamar('guardarEpoca', { epoca: epoca }); };
   ApiGoogle.prototype.latido = function (d) { return this.llamar('latido', d); };
   ApiGoogle.prototype.presencia = function () { return this.llamar('presencia'); };
 
   // -------------------------------------------------------------------- Demo
-  var CLAVE = 'reserva-salas-demo-v4';
+  var CLAVE = 'reserva-salas-demo-v5';
   var SALAS_BASE = [
     { id: 'S1', nombre: 'Sala Ejecutiva', ubicacion: 'Edificio A · 3er piso', capacidad: 12, equipamiento: 'Pantalla 75", Videoconferencia, Pizarra', apertura: '07:00', cierre: '19:00', color: '#039be5', activa: true, descripcion: 'Sala para juntas directivas con videoconferencia.' },
     { id: 'S2', nombre: 'Sala Creativa', ubicacion: 'Edificio A · 2º piso', capacidad: 8, equipamiento: 'Pizarra, TV, Post-its', apertura: '07:00', cierre: '19:00', color: '#33b679', activa: true, descripcion: 'Espacio informal para lluvias de ideas.' },
@@ -121,6 +124,11 @@ var Api = (function () {
     agregar(dPriv(3), 'S1', '14:00', '15:00', 'Revisión salarial', 4, 3,
       { privada: true, invitados: [GENTE[3][0]], descripcion: 'Ajustes del próximo año.' });
     agregar(dPriv(10), 'S1', '11:00', '12:00', 'Negociación con proveedor', 2, 4, { privada: true });
+    // Reuniones de Alex con el mismo grupo de personas (para «grupos» y «frecuentes» al invitar)
+    var comite = [GENTE[1][0], GENTE[2][0], GENTE[5][0]];
+    agregar(dPriv(-5), 'S1', '10:00', '11:00', 'Comité de producto', 0, 4, { invitados: comite.slice() });
+    agregar(dPriv(-12), 'S1', '10:00', '11:00', 'Comité de producto', 0, 4, { invitados: comite.slice() });
+    agregar(dPriv(-8), 'S3', '15:00', '16:00', 'Revisión con finanzas', 0, 3, { invitados: [GENTE[4][0], 'contabilidad@proveedor-demo.com'] });
 
     // Historial y próximas semanas al azar
     var salas = ['S1', 'S2', 'S3', 'S4', 'S5'];
@@ -341,6 +349,41 @@ var Api = (function () {
         proximas: suyas.filter(function (r) { return new Date(r.inicio) > ahora; }).length,
       });
     }));
+  };
+  // Directorio simulado de la organización (en la instalación real sale de Google Workspace)
+  var DIRECTORIO_DEMO = [
+    ['diego.paz', 'Diego Paz'], ['eva.rios', 'Eva Ríos'], ['fernanda.mejia', 'Fernanda Mejía'], ['gabriel.torres', 'Gabriel Torres'],
+    ['helena.cruz', 'Helena Cruz'], ['ivan.flores', 'Iván Flores'], ['julia.romero', 'Julia Romero'], ['kevin.alvarado', 'Kevin Alvarado'],
+    ['laura.pineda', 'Laura Pineda'], ['mario.guzman', 'Mario Guzmán'], ['natalia.orellana', 'Natalia Orellana'], ['oscar.menjivar', 'Óscar Menjívar'],
+    ['patricia.rivas', 'Patricia Rivas'], ['ricardo.aguilar', 'Ricardo Aguilar'], ['maria.lemus', 'María Lemus'],
+  ];
+  ApiDemo.prototype.directorio = function () {
+    var yo = this.yo().email;
+    var porCorreo = {};
+    GENTE.concat(DIRECTORIO_DEMO.map(function (p) { return [p[0] + '@demo.com', p[1]]; })).forEach(function (g) {
+      if (g[0] !== yo) porCorreo[g[0]] = { email: g[0], nombre: g[1], foto: '', fuente: 'organizacion' };
+    });
+    var veces = {}, grupos = {};
+    this.reservas.filter(function (r) { return r.organizadorEmail === yo && r.estado !== 'cancelada'; })
+      .sort(function (a, b) { return new Date(b.inicio) - new Date(a.inicio); })
+      .forEach(function (r) {
+        var inv = (r.invitados || []).filter(function (c) { return c !== yo; });
+        inv.forEach(function (c) {
+          veces[c] = (veces[c] || 0) + 1;
+          if (!porCorreo[c]) porCorreo[c] = { email: c, nombre: c, foto: '', fuente: 'contacto' };
+        });
+        if (inv.length >= 2) {
+          var k = inv.slice().sort().join(',');
+          if (!grupos[k]) grupos[k] = { titulo: r.titulo, invitados: inv.slice().sort(), veces: 0 };
+          grupos[k].veces++;
+        }
+      });
+    return this.espera({
+      personas: Object.keys(porCorreo).map(function (k) { return porCorreo[k]; }).sort(function (a, b) { return a.nombre.localeCompare(b.nombre, 'es'); }),
+      frecuentes: Object.keys(veces).sort(function (a, b) { return veces[b] - veces[a]; }).slice(0, 10),
+      grupos: Object.keys(grupos).map(function (k) { return grupos[k]; }).sort(function (a, b) { return b.veces - a.veces; }).slice(0, 6),
+      directorioOrganizacion: true,
+    });
   };
   // En la demo la época «de la organización» se guarda en este navegador
   ApiDemo.prototype.guardarEpoca = function (epoca) {

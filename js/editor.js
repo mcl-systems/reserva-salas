@@ -128,6 +128,7 @@ var Editor = (function () {
     form.descripcion.value = r ? r.descripcion : (datos.descripcion || '');
     ed.invitados = (r ? r.invitados : datos.invitados || []).slice();
     pintarInvitados();
+    cerrarSugerencias();
     form.privada.checked = !!(r ? r.privada : datos.privada);
     pintarPrivada();
     ed.salaElegida = r ? r.salaId : (datos.salaId || null);
@@ -251,22 +252,136 @@ var Editor = (function () {
     U.$$('.chip-inv', cont).forEach(function (c) { c.remove(); });
     var input = U.$('#invitado-texto');
     ed.invitados.forEach(function (correo, i) {
-      var chip = U.el('<span class="chip-inv"><span class="ini">' + U.esc(U.iniciales(correo)) + '</span>' + U.esc(correo) +
-        '<button type="button" aria-label="Quitar ' + U.esc(correo) + '"><span class="ms">close</span></button></span>');
-      chip.querySelector('button').addEventListener('click', function () { ed.invitados.splice(i, 1); pintarInvitados(); });
+      var p = Personas.persona(correo) || { email: correo, nombre: correo, foto: '' };
+      var visible = Personas.nombre(correo) || correo;
+      var chip = U.el('<span class="chip-inv" title="' + U.esc(correo) + '">' + Personas.avatar(p) + U.esc(visible) +
+        '<button type="button" aria-label="Quitar a ' + U.esc(visible) + '"><span class="ms">close</span></button></span>');
+      chip.querySelector('button').addEventListener('click', function () { ed.invitados.splice(i, 1); pintarInvitados(); input.focus(); });
       cont.insertBefore(chip, input);
     });
+    input.placeholder = ed.invitados.length ? 'Agregar a alguien más' : 'Agregar invitados: escribe un nombre o correo';
   }
 
+  /** Si los invitados (más quien organiza) ya no caben en el número de personas, lo sube solo. */
+  function ajustarPersonas() {
+    var form = f();
+    var necesarias = ed.invitados.length + 1;
+    if (Number(form.asistentes.value || 0) < necesarias) {
+      form.asistentes.value = necesarias;
+      form.asistentes.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+
+  /**
+   * Agrega lo escrito o pegado: uno o varios correos (también «Nombre <correo>» copiado de Gmail/Outlook)
+   * o un nombre de alguien del directorio. Devuelve lo que no se pudo reconocer.
+   */
   function agregarInvitado(texto) {
-    var nuevos = String(texto).split(/[,;\s]+/).map(function (x) { return x.trim().toLowerCase(); }).filter(Boolean);
-    var malos = [];
-    nuevos.forEach(function (c) {
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c)) malos.push(c);
-      else if (ed.invitados.indexOf(c) === -1) ed.invitados.push(c);
-    });
+    texto = String(texto || '').trim();
+    if (!texto) return [];
+    var correos = Personas.correosDe(texto);
+    if (!correos.length) {
+      var encontradas = Personas.buscar(texto, ed.invitados, 2);
+      if (encontradas.length === 1 || (encontradas.length && Personas.normalizar(encontradas[0].nombre) === Personas.normalizar(texto))) {
+        correos = [encontradas[0].email];
+      } else {
+        return [texto];
+      }
+    }
+    correos.forEach(function (c) { if (ed.invitados.indexOf(c) === -1) ed.invitados.push(c); });
     pintarInvitados();
-    return malos;
+    ajustarPersonas();
+    return [];
+  }
+
+  // ------------------------------------------------- sugerencias de personas
+  var sug = { abierta: false, opciones: [], activa: -1 };
+  function abrirSugerencias() {
+    var input = U.$('#invitado-texto');
+    var panel = U.$('#sugerencias-inv');
+    var q = input.value.trim();
+    var opciones = [];
+    var html = '';
+    var fila = function (tipo, p, extra) {
+      var i = opciones.length;
+      opciones.push({ tipo: tipo, p: p });
+      return '<div class="sug" role="option" id="sug-' + i + '" data-i="' + i + '" aria-selected="false">' + (extra || '') + '</div>';
+    };
+    var filaPersona = function (p) {
+      var nom = p.nombre && p.nombre !== p.email ? p.nombre : '';
+      return fila('persona', p, Personas.avatar(p, 'sug-foto') + '<span class="sug-texto"><b>' + U.esc(nom || p.email) + '</b>' +
+        (nom ? '<small>' + U.esc(p.email) + '</small>' : '') + '</span>' +
+        (p.fuente === 'contacto' ? '<span class="sug-etq">externo</span>' : ''));
+    };
+    if (!q) {
+      var frec = Personas.frecuentes(ed.invitados).slice(0, 5);
+      var grupos = Personas.grupos().filter(function (g) { return g.invitados.some(function (c) { return ed.invitados.indexOf(c) === -1; }); }).slice(0, 3);
+      if (grupos.length) {
+        html += '<div class="sug-titulo">Invitar al mismo grupo de</div>';
+        grupos.forEach(function (g) {
+          var nombres = g.invitados.map(function (c) { return (Personas.nombre(c) || c).split(/[ @]/)[0]; });
+          html += fila('grupo', g, '<span class="sug-foto grupo"><span class="ms">groups</span></span><span class="sug-texto"><b>«' + U.esc(g.titulo) + '»</b>' +
+            '<small>' + U.esc(nombres.slice(0, 4).join(', ') + (nombres.length > 4 ? ' y ' + (nombres.length - 4) + ' más' : '')) + '</small></span>' +
+            '<span class="sug-etq">' + g.invitados.length + ' personas</span>');
+        });
+      }
+      if (frec.length) {
+        html += '<div class="sug-titulo">Invitas seguido a</div>';
+        frec.forEach(function (p) { html += filaPersona(p); });
+      }
+      if (!html) { cerrarSugerencias(); return; }
+    } else {
+      var encontradas = Personas.buscar(q, ed.invitados, 7);
+      encontradas.forEach(function (p) { html += filaPersona(p); });
+      var correos = Personas.correosDe(q);
+      if (correos.length === 1 && !Personas.persona(correos[0]) && ed.invitados.indexOf(correos[0]) === -1) {
+        html += fila('correo', { email: correos[0], nombre: correos[0] }, '<span class="sug-foto"><span class="ms">mail</span></span><span class="sug-texto"><b>Invitar a ' + U.esc(correos[0]) + '</b></span>');
+      }
+      if (!html) {
+        html = '<div class="sug-vacio">' + (q.indexOf('@') === -1 ? 'No encuentro a «' + U.esc(q) + '». Escribe su correo completo.' : 'Sigue escribiendo el correo…') + '</div>';
+      }
+    }
+    panel.innerHTML = html;
+    sug.opciones = opciones;
+    sug.activa = opciones.length && q ? 0 : -1;
+    sug.abierta = true;
+    panel.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+    marcarActiva();
+    // Dentro del formulario que se desplaza: que la lista quede a la vista
+    requestAnimationFrame(function () { panel.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); });
+  }
+  function cerrarSugerencias() {
+    sug.abierta = false;
+    sug.activa = -1;
+    var panel = U.$('#sugerencias-inv');
+    panel.hidden = true;
+    var input = U.$('#invitado-texto');
+    input.setAttribute('aria-expanded', 'false');
+    input.removeAttribute('aria-activedescendant');
+  }
+  function marcarActiva() {
+    var input = U.$('#invitado-texto');
+    U.$$('#sugerencias-inv .sug').forEach(function (el) {
+      var activa = Number(el.dataset.i) === sug.activa;
+      el.setAttribute('aria-selected', String(activa));
+      el.classList.toggle('activa', activa);
+      if (activa) { input.setAttribute('aria-activedescendant', el.id); el.scrollIntoView({ block: 'nearest' }); }
+    });
+    if (sug.activa < 0) input.removeAttribute('aria-activedescendant');
+  }
+  function elegirSugerencia(i) {
+    var o = sug.opciones[i];
+    if (!o) return;
+    var input = U.$('#invitado-texto');
+    if (o.tipo === 'grupo') o.p.invitados.forEach(function (c) { if (ed.invitados.indexOf(c) === -1) ed.invitados.push(c); });
+    else if (ed.invitados.indexOf(o.p.email) === -1) ed.invitados.push(o.p.email);
+    input.value = '';
+    pintarInvitados();
+    ajustarPersonas();
+    mostrarErrores([]);
+    abrirSugerencias();
+    input.focus();
   }
 
   function mostrarErrores(errores, extraHtml) {
@@ -283,9 +398,10 @@ var Editor = (function () {
     var pendiente = U.$('#invitado-texto').value.trim();
     if (pendiente) {
       var malos = agregarInvitado(pendiente);
-      if (malos.length) return mostrarErrores(['Correo no válido: ' + malos.join(', ')]);
+      if (malos.length) return mostrarErrores(['No encuentro a «' + malos.join(', ') + '». Elige de la lista o escribe su correo completo.']);
       U.$('#invitado-texto').value = '';
     }
+    cerrarSugerencias();
     var d = leerFormulario();
     var recurrencia = leerRecurrencia();
     var cache = App.estado.cache;
@@ -388,20 +504,65 @@ var Editor = (function () {
     });
 
     var inv = U.$('#invitado-texto');
+    var panelSug = U.$('#sugerencias-inv');
+    inv.addEventListener('input', abrirSugerencias);
+    inv.addEventListener('focus', abrirSugerencias);
     inv.addEventListener('keydown', function (e) {
-      if ((e.key === 'Enter' || e.key === ',' || e.key === ' ' || e.key === 'Tab') && inv.value.trim()) {
+      if (sug.abierta && (e.key === 'ArrowDown' || e.key === 'ArrowUp') && sug.opciones.length) {
         e.preventDefault();
-        var malos = agregarInvitado(inv.value);
+        sug.activa = (sug.activa + (e.key === 'ArrowDown' ? 1 : -1) + sug.opciones.length) % sug.opciones.length;
+        marcarActiva();
+        return;
+      }
+      if (e.key === 'Escape' && sug.abierta) { e.preventDefault(); e.stopPropagation(); cerrarSugerencias(); return; }
+      var texto = inv.value.trim();
+      // Enter o Tab: la sugerencia marcada; si no hay, lo escrito
+      if ((e.key === 'Enter' || (e.key === 'Tab' && texto)) && sug.abierta && sug.activa >= 0) {
+        e.preventDefault();
+        elegirSugerencia(sug.activa);
+        return;
+      }
+      // Coma, punto y coma o Enter cierran un correo; el espacio solo si ya es un correo completo (los nombres llevan espacios)
+      var cierra = e.key === 'Enter' || e.key === ',' || e.key === ';' || (e.key === 'Tab' && texto) ||
+        (e.key === ' ' && Personas.correosDe(texto).length === 1 && texto.indexOf(' ') === -1);
+      if (cierra && texto) {
+        e.preventDefault();
+        var malos = agregarInvitado(texto);
         inv.value = malos.join(', ');
-        mostrarErrores(malos.length ? ['Correo no válido: ' + malos.join(', ')] : []);
+        mostrarErrores(malos.length ? ['No encuentro a «' + malos.join(', ') + '». Elige de la lista o escribe su correo completo.'] : []);
+        abrirSugerencias();
       } else if (e.key === 'Backspace' && !inv.value && ed.invitados.length) {
         ed.invitados.pop();
         pintarInvitados();
+        abrirSugerencias();
+      }
+    });
+    // Pegar una lista de correos (de Gmail, Outlook o una hoja de cálculo) los agrega todos de una vez
+    inv.addEventListener('paste', function (e) {
+      var texto = (e.clipboardData || window.clipboardData).getData('text');
+      if (Personas.correosDe(texto).length > 1) {
+        e.preventDefault();
+        agregarInvitado(texto);
+        inv.value = '';
+        abrirSugerencias();
+        App.aviso(Personas.correosDe(texto).length + ' invitados agregados');
       }
     });
     inv.addEventListener('blur', function () {
-      if (inv.value.trim()) { var malos = agregarInvitado(inv.value); inv.value = malos.join(', '); }
+      setTimeout(function () {
+        if (document.activeElement === inv) return;
+        cerrarSugerencias();
+        if (inv.value.trim() && Personas.correosDe(inv.value).length) { var malos = agregarInvitado(inv.value); inv.value = malos.join(', '); }
+      }, 150);
     });
+    // mousedown (no click) para que el campo no pierda el foco antes de elegir
+    panelSug.addEventListener('mousedown', function (e) {
+      var el = e.target.closest('.sug');
+      if (!el) return;
+      e.preventDefault();
+      elegirSugerencia(Number(el.dataset.i));
+    });
+    U.$('#invitados').addEventListener('click', function (e) { if (e.target.id === 'invitados') inv.focus(); });
     U.$('#dlg-eliminar').addEventListener('click', function () {
       var r = ed.reserva;
       if (!r) return;

@@ -171,6 +171,7 @@
       Asistente.iniciar(contextoAsistente());
       leerRuta();
       Ayuda.alEntrar();
+      Personas.cargar(estado.api, estado.usuario.email);
       Epocas.establecer(estado.config.EPOCA);
       Epocas.iniciar();
     }).catch(function (e) {
@@ -904,6 +905,8 @@
     });
     if (cambio) U.almacen.guardar('rs_directorio', guardado);
     var yo = estado.usuario ? estado.usuario.email : '';
+    // Más el directorio completo (organización, usuarios y tus contactos)
+    Personas.todas().forEach(function (p) { if (p.nombre && p.nombre !== p.email && !guardado[p.email]) guardado[p.email] = p.nombre; });
     return Object.keys(guardado).filter(function (e) { return e !== yo; }).map(function (e) { return { email: e, nombre: guardado[e] }; });
   }
 

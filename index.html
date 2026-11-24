@@ -237,8 +237,12 @@
         </div>
         <div class="fila-campo">
           <span class="ms">person_add</span>
-          <div class="invitados" id="invitados">
-            <input type="email" id="invitado-texto" placeholder="Agregar invitados (correo y Enter)" aria-label="Agregar invitados">
+          <div class="campo-invitados">
+            <div class="invitados" id="invitados">
+              <input type="text" id="invitado-texto" placeholder="Agregar invitados: escribe un nombre o correo" aria-label="Agregar invitados"
+                role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugerencias-inv" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="sugerencias-inv" id="sugerencias-inv" role="listbox" aria-label="Personas sugeridas" hidden></div>
           </div>
         </div>
         <div class="fila-campo">
@@ -391,6 +395,7 @@
   <script src="js/interprete.js"></script>
   <script src="js/api.js"></script>
   <script src="js/calendario.js"></script>
+  <script src="js/personas.js"></script>
   <script src="js/editor.js"></script>
   <script src="js/paneles.js"></script>
   <script src="js/huevos.js"></script>
